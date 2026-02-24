@@ -1,0 +1,23 @@
+enum ControlMode : byte {
+  Position = 0,
+  Impedance = 1
+}
+
+table ChangeMode {
+  mode: ControlMode;
+}
+
+table GuessPayload {
+}
+
+union CommandType {
+  ChangeMode,
+  GuessPayload
+}
+
+table StreamCommand {
+  seq: uint64;
+  command: CommandType;
+}
+
+root_type StreamCommand;

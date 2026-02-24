@@ -1,0 +1,102 @@
+struct JointState {
+  position: float;
+  velocity: float;
+  acceleration: float;
+}
+
+struct RobotState {
+  j1: JointState; 
+  j2: JointState;
+  j3: JointState;
+  j4: JointState;
+  j5: JointState;
+  j6: JointState;
+  j7: JointState;
+}
+
+table TcpTwist {
+  x: float;
+  y: float;
+  z: float;
+  rx: float;
+  ry: float;
+  rz: float;
+  impedance: TcpImpedance;
+}
+
+table JointTwist {
+  j1: float;
+  j2: float;
+  j3: float;
+  j4: float;
+  j5: float;
+  j6: float;
+  j7: float;
+  impedance: ImpedanceCommand;
+}
+
+table Pose {
+  j1: float;
+  j2: float;
+  j3: float;
+  j4: float;
+  j5: float;
+  j6: float;
+  j7: float;
+  impedance: ImpedanceCommand;
+}
+
+table TcpImpedance {
+  stiffness_x: float;
+  stiffness_y: float;
+  stiffness_z: float;
+  stiffness_rx: float;
+  stiffness_ry: float;
+  stiffness_rz: float;
+  damping_x: float;
+  damping_y: float;
+  damping_z: float;
+  damping_rx: float;
+  damping_ry: float;
+  damping_rz: float;
+}
+
+table JointImpedance {
+  stiffness_j1: float;
+  stiffness_j2: float;
+  stiffness_j3: float;
+  stiffness_j4: float;
+  stiffness_j5: float;
+  stiffness_j6: float;
+  stiffness_j7: float;
+  damping_j1: float;
+  damping_j2: float;
+  damping_j3: float;
+  damping_j4: float;
+  damping_j5: float;
+  damping_j6: float;
+  damping_j7: float;
+}
+
+union ImpedanceCommand {
+  TcpImpedance,
+  JointImpedance
+}
+
+table BufferPoint {
+  robot_state: RobotState (required);
+}
+
+union CommandType {
+  TcpTwist,
+  JointTwist,
+  Pose,
+  BufferPoint
+}
+
+table MotionCommand {
+  seq: uint64 (required);
+  command: CommandType (required);
+}
+
+root_type MotionCommand;
