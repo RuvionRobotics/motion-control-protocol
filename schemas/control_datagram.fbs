@@ -1,103 +1,73 @@
-// motion_command.fbs
+// control_datagram.fbs
 // Conventions:
-// - Joint index: 0..6 corresponds to j1..j7
-// - TCP index: 0..5 corresponds to (x,y,z,rx,ry,rz)
-// - For partial commands: mask is a bitset.
-//   * JointVector7.mask: Bit i (0..6) => values[i] is valid
-//   * TcpVector6.mask:   Bit i (0..5) => values[i] is valid
-// - Default mask = "all valid" => when typically sending everything, no additional overhead.
+// - Joint space: 7 values, index 0..6 => j1..j7
+// - TCP space:   6 values, index 0..5 => x,y,z,rx,ry,rz
 
 namespace ruvion.motion;
 
 file_identifier "MOCM";
 
-enum EffectorId : ubyte {
-  LEFT_ARM  = 0,
-  RIGHT_ARM = 1
-}
-
-struct JointState {
-  position: float;
-  velocity: float;
-  acceleration: float;
-}
-
-// ---------- States ----------
-
-table ArmState {
-  // Expected length: 7
-  joints: [JointState] (required);
-}
-
-table RobotState {
-  left_arm:  ArmState (required);
-  right_arm: ArmState (required);
-}
-
-// ---------- Helper Vectors (for Commands) ----------
-
-table JointVector {
-  // Expected length: 7
-  values: [float] (required);
-}
-
 // ---------- Impedance ----------
 
 table TcpImpedance {
-  // Expected length: 6 (x,y,z,rx,ry,rz)
-  stiffness: [float] (required);
-  damping:   [float] (required);
+  stiffness: [float] (required);  // 6: x,y,z,rx,ry,rz
+  damping:   [float] (required);  // 6: x,y,z,rx,ry,rz
 }
 
 table JointImpedance {
-  // Expected length: 7
-  stiffness: [float] (required);
-  damping:   [float] (required);
+  stiffness: [float] (required);  // 7: j1..j7
+  damping:   [float] (required);  // 7: j1..j7
 }
 
-// ---------- Commands (arm-independent, arm is specified via ArmCommand) ----------
+union Impedance { TcpImpedance, JointImpedance }
+
+// ---------- Commands ----------
 
 table TcpTwistCommand {
-  twist: TcpVector6 (required);
-  impedance: TcpImpedance;
+  twist:     [float] (required);  // 6: vx,vy,vz,wx,wy,wz
+  impedance: Impedance;
 }
 
 table JointTwistCommand {
-  twist: JointVector (required);
-  impedance: JointImpedance;
+  twist:     [float] (required);  // 7: dq1..dq7
+  impedance: Impedance;
 }
 
 table JointPoseCommand {
-  q: JointVector (required);   // Joint positions
-  impedance: JointImpedance;
+  position:  [float] (required);  // 7: q1..q7
+  impedance: Impedance;
 }
 
-// Optional: BufferPoint for trajectory buffer / replay / logging
 table BufferPoint {
-  robot_state: RobotState (required);
+  position:     [float] (required);  // 7: q1..q7
+  velocity:     [float] (required);  // 7: dq1..dq7
+  acceleration: [float] (required);  // 7: ddq1..ddq7
+  impedance:    Impedance;
 }
-
-// ---------- Union for Command Payload ----------
 
 union CommandType {
-  TcpTwistCommand, // relative tcp
-  JointTwistCommand, // relative joints
-  JointPoseCommand, // absolute joints
-  BufferPoint // absolute joints
+  TcpTwistCommand,
+  JointTwistCommand,
+  JointPoseCommand,
+  BufferPoint
 }
-// Note: absolute tcp not supported due to redundancy
 
-// ---------- Multi-Arm Envelope ----------
+// ---------- Envelope ----------
 
-table ArmCommand {
-  effector: EffectorId (required);
+table SingleArmCommand {
   command: CommandType (required);
 }
 
+table HumanoidCommand {
+  left:  CommandType;
+  right: CommandType;
+}
+
+union MotionPayload { SingleArmCommand, HumanoidCommand }
+
 table MotionCommand {
-  seq: uint64;
-  // 1 entry => single arm; 2 entries => both arms; extensible for additional effectors
-  commands: [ArmCommand] (required);
+  seq:     uint64;
+  payload: MotionPayload (required);
 }
 
 root_type MotionCommand;
