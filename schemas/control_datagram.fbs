@@ -54,22 +54,27 @@ union CommandType {
   BufferPoint
 }
 
-// ---------- Envelope ----------
+// ---------- Arm ----------
 
-table SingleArmCommand {
+table ArmCommand {
   command: CommandType (required);
 }
 
-table HumanoidCommand {
-  left:  CommandType;
-  right: CommandType;
+// ---------- Base ----------
+
+table BaseCommand {
+  position: [float];  // up to 3: lift, rail, rotation
 }
 
-union MotionPayload { SingleArmCommand, HumanoidCommand }
+// ---------- Envelope ----------
 
+// arms: ordered list, index matches config order
+// - Single arm:  arms[0] = the arm
+// - Dual arm:    arms[0] = right, arms[1] = left
 table MotionCommand {
-  seq:     uint64;
-  payload: MotionPayload (required);
+  seq:  uint64;
+  arms: [ArmCommand];
+  base: BaseCommand;
 }
 
 root_type MotionCommand;
