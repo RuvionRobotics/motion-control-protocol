@@ -1,23 +1,26 @@
-enum ControlMode : byte {
-  Position = 0,
-  Impedance = 1
+namespace ruvion.motion;
+
+enum QuickstopState : byte {
+  Engage = 0,
+  Disengage = 1
 }
 
-table ChangeMode {
-  mode: ControlMode;
+table Quickstop {
+  state: QuickstopState;
 }
 
-table GuessPayload {
+table Calibration {
 }
 
 union CommandType {
-  ChangeMode,
-  GuessPayload
+  Quickstop,
+  Calibration
 }
 
 table StreamCommand {
   seq: uint64;
-  command: CommandType;
+  command: CommandType (required);
 }
 
 root_type StreamCommand;
+

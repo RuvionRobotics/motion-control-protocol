@@ -1,0 +1,6 @@
+namespace ruvion.motion;
+
+table TelemetryData {
+}
+
+root_type TelemetryData;
