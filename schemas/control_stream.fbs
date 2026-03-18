@@ -10,6 +10,7 @@ table Quickstop {
 }
 
 table Calibration {
+  seq: uint64;
 }
 
 union CommandType {
