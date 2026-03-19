@@ -60,12 +60,6 @@ table ArmCommand {
   command: CommandType (required);
 }
 
-// ---------- Base ----------
-
-table BaseCommand {
-  position: [float];  // up to 3: lift, rail, rotation
-}
-
 // ---------- Envelope ----------
 
 // arms: ordered list, index matches config order
@@ -74,7 +68,6 @@ table BaseCommand {
 table MotionCommand {
   seq:  uint64;
   arms: [ArmCommand];
-  base: BaseCommand;
 }
 
 root_type MotionCommand;
