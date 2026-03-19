@@ -13,9 +13,14 @@ table Calibration {
   seq: uint64;
 }
 
+table StartTrajectory {
+  id: uint64;
+}
+
 union CommandType {
   Quickstop,
-  Calibration
+  Calibration,
+  StartTrajectory
 }
 
 table StreamCommand {
