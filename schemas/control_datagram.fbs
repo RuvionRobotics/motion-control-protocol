@@ -60,14 +60,27 @@ table ArmCommand {
   command: CommandType (required);
 }
 
+// ---------- Robot ----------
+
+table SingleCommand {
+  arm: ArmCommand (required);
+}
+
+table HumanoidCommand {
+  right: ArmCommand (required);
+  left: ArmCommand (required);
+}
+
+union RobotCommandType {
+  SingleCommand,
+  HumanoidCommand
+}
+
 // ---------- Envelope ----------
 
-// arms: ordered list, index matches config order
-// - Single arm:  arms[0] = the arm
-// - Dual arm:    arms[0] = right, arms[1] = left
 table MotionCommand {
   seq:  uint64;
-  arms: [ArmCommand];
+  robot_command: RobotCommandType (required);
 }
 
 root_type MotionCommand;
