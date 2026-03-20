@@ -17,10 +17,14 @@ table StartTrajectory {
   id: uint64;
 }
 
+table ClearFault {
+}
+
 union CommandType {
   Quickstop,
   Calibration,
-  StartTrajectory
+  StartTrajectory,
+  ClearFault
 }
 
 table StreamCommand {
