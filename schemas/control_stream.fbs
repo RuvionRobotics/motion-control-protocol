@@ -20,11 +20,20 @@ table StartTrajectory {
 table ClearFault {
 }
 
+table ClaimControl {
+  force: bool = false;
+}
+
+table ReleaseControl {
+}
+
 union CommandType {
   Quickstop,
   Calibration,
   StartTrajectory,
-  ClearFault
+  ClearFault,
+  ClaimControl,
+  ReleaseControl
 }
 
 table StreamCommand {

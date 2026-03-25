@@ -42,6 +42,8 @@ table SafetyState {
   // Sequence tracking: last command received from client, and which seq is currently being executed
   last_received_seq:   uint64;
   active_seq:          uint64;
+  // Control ownership: true if a client currently holds the control token
+  has_controller:      bool;
 }
 
 // ---------- Robot configuration variants ----------
