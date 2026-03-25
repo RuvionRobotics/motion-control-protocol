@@ -21,6 +21,15 @@ table ArmTelemetry {
   fault_codes:       [uint16];  // n: CiA402 error codes per joint
   faulted:           [bool];    // n: per-joint fault flags
   quick_stop_active: [bool];    // n: per-joint quickstop active
+  // TCP pose + velocity: optional, omitted when kinematics unavailable
+  tcp_actual_position:       [float];  // 3: x, y, z in mm (measured)
+  tcp_actual_orientation:    [float];  // 4: w, x, y, z quaternion (measured)
+  tcp_actual_linear_vel:     [float];  // 3: vx, vy, vz in mm/s (measured)
+  tcp_actual_angular_vel:    [float];  // 3: rx, ry, rz in rad/s (measured)
+  tcp_commanded_position:    [float];  // 3: x, y, z in mm (commanded)
+  tcp_commanded_orientation: [float];  // 4: w, x, y, z quaternion (commanded)
+  tcp_commanded_linear_vel:  [float];  // 3: vx, vy, vz in mm/s (commanded)
+  tcp_commanded_angular_vel: [float];  // 3: rx, ry, rz in rad/s (commanded)
 }
 
 // ---------- Safety / supervisory state ----------
