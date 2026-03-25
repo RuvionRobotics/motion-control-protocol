@@ -1,6 +1,59 @@
+// telemetry_datagram.fbs
+// High-frequency robot state telemetry sent from controller to client.
+// Conventions:
+// - Joint space: 7 values, index 0..6 => j1..j7
+// - Temperatures: n values (one per motor), f32::NAN if not available
+
 namespace ruvion.motion;
 
+file_identifier "MOTE";
+
+// ---------- Per-arm telemetry ----------
+
+table ArmTelemetry {
+  target_position:   [float];   // 7: commanded q1..q7
+  target_velocity:   [float];   // 7: commanded dq1..dq7
+  actual_position:   [float];   // 7: measured q1..q7
+  actual_velocity:   [float];   // 7: measured dq1..dq7
+  actual_torque:     [float];   // 7: measured torques
+  motor_temperature:  [float];   // 7: motor winding temperature, NaN = unavailable
+  driver_temperature: [float];   // 7: drive/inverter temperature, NaN = unavailable
+  fault_codes:       [uint16];  // n: CiA402 error codes per joint
+  faulted:           [bool];    // n: per-joint fault flags
+  quick_stop_active: [bool];    // n: per-joint quickstop active
+}
+
+// ---------- Safety / supervisory state ----------
+
+table SafetyState {
+  any_fault:           bool;
+  all_op_enabled:      bool;
+  quickstop_requested: bool;
+  quickstop_active:    bool;
+  // Sequence tracking: last command received from client, and which seq is currently being executed
+  last_received_seq:   uint64;
+  active_seq:          uint64;
+}
+
+// ---------- Robot configuration variants ----------
+
+table SingleTelemetry {
+  arm: ArmTelemetry (required);
+}
+
+table HumanoidTelemetry {
+  right: ArmTelemetry (required);
+  left:  ArmTelemetry (required);
+}
+
+union RobotTelemetryType { SingleTelemetry, HumanoidTelemetry }
+
+// ---------- Envelope ----------
+
 table TelemetryData {
+  seq:    uint64;
+  safety: SafetyState (required);
+  robot:  RobotTelemetryType (required);
 }
 
 root_type TelemetryData;
