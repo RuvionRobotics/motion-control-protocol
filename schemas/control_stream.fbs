@@ -13,9 +13,6 @@ table Calibration {
   seq: uint64;
 }
 
-table CalibrationAbort {
-}
-
 table StartTrajectory {
   id: uint64;
 }
@@ -30,6 +27,9 @@ table ClaimControl {
 table ReleaseControl {
 }
 
+table Stop {
+}
+
 union CommandType {
   Quickstop,
   Calibration,
@@ -37,7 +37,7 @@ union CommandType {
   ClearFault,
   ClaimControl,
   ReleaseControl,
-  CalibrationAbort
+  Stop
 }
 
 table StreamCommand {
