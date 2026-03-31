@@ -27,11 +27,11 @@ table ClaimControl {
 table ReleaseControl {
 }
 
-table SingleHoming {
+table SingleZeroing {
   joints: [uint8] (required);
 }
 
-table HumanoidHoming {
+table HumanoidZeroing {
   right_joints: [uint8];
   left_joints: [uint8];
 }
@@ -42,8 +42,8 @@ table Stop {
 union CommandType {
   Quickstop,
   Calibration,
-  SingleHoming,
-  HumanoidHoming,
+  SingleZeroing,
+  HumanoidZeroing,
   StartTrajectory,
   ClearFault,
   ClaimControl,
