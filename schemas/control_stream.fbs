@@ -9,8 +9,14 @@ table Quickstop {
   state: QuickstopState;
 }
 
+enum CalibrationType : byte {
+  Gravity = 0,
+  Friction = 1
+}
+
 table Calibration {
   seq: uint64;
+  calibration_type: CalibrationType = Gravity;
 }
 
 table StartTrajectory {
