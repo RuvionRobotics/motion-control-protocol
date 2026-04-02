@@ -45,6 +45,18 @@ table HumanoidZeroing {
 table Stop {
 }
 
+table SingleSetSpeedOverride {
+  velocity_factor: float;
+  acceleration_factor: float;
+}
+
+table HumanoidSetSpeedOverride {
+  right_velocity_factor: float;
+  right_acceleration_factor: float;
+  left_velocity_factor: float;
+  left_acceleration_factor: float;
+}
+
 union CommandType {
   Quickstop,
   Calibration,
@@ -54,7 +66,9 @@ union CommandType {
   ClearFault,
   ClaimControl,
   ReleaseControl,
-  Stop
+  Stop,
+  SingleSetSpeedOverride,
+  HumanoidSetSpeedOverride
 }
 
 table StreamCommand {
