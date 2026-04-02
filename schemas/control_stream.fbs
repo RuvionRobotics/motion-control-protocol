@@ -46,15 +46,15 @@ table Stop {
 }
 
 table SingleSetSpeedOverride {
-  velocity_factor: float;
-  acceleration_factor: float;
+  velocity_factor: float = 1.0;
+  acceleration_factor: float = 1.0;
 }
 
 table HumanoidSetSpeedOverride {
-  right_velocity_factor: float;
-  right_acceleration_factor: float;
-  left_velocity_factor: float;
-  left_acceleration_factor: float;
+  right_velocity_factor: float = 1.0;
+  right_acceleration_factor: float = 1.0;
+  left_velocity_factor: float = 1.0;
+  left_acceleration_factor: float = 1.0;
 }
 
 union CommandType {
