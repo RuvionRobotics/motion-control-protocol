@@ -57,6 +57,15 @@ table HumanoidSetSpeedOverride {
   left_acceleration_factor: float = 1.0;
 }
 
+enum DriveMode : byte {
+  Csp = 0,
+  Impedance = 1
+}
+
+table SetDriveMode {
+  mode: DriveMode = Csp;
+}
+
 union CommandType {
   Quickstop,
   Calibration,
@@ -68,7 +77,8 @@ union CommandType {
   ReleaseControl,
   Stop,
   SingleSetSpeedOverride,
-  HumanoidSetSpeedOverride
+  HumanoidSetSpeedOverride,
+  SetDriveMode
 }
 
 table StreamCommand {
