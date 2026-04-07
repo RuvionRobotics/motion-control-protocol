@@ -66,6 +66,15 @@ table SetDriveMode {
   mode: DriveMode = Csp;
 }
 
+table CheckUpdate {
+}
+
+table ApplyUpdate {
+}
+
+table Reboot {
+}
+
 union CommandType {
   Quickstop,
   Calibration,
@@ -78,7 +87,10 @@ union CommandType {
   Stop,
   SingleSetSpeedOverride,
   HumanoidSetSpeedOverride,
-  SetDriveMode
+  SetDriveMode,
+  CheckUpdate,
+  ApplyUpdate,
+  Reboot
 }
 
 table StreamCommand {
