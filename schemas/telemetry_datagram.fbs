@@ -50,10 +50,10 @@ table SafetyState {
 // ---------- System state ----------
 
 enum DriveStatus : byte {
-  Offline = 0,
-  Fault = 1,
-  QuickStop = 2,
-  Settling = 3,
+  Off = 0,
+  SettingUp = 1,
+  Fault = 2,
+  QuickStop = 3,
   Operational = 4
 }
 
@@ -65,8 +65,9 @@ enum ActivityType : byte {
 
 enum MotionStatus : byte {
   Idle = 0,
-  Moving = 1,
-  Braking = 2
+  Settling = 1,
+  Moving = 2,
+  Braking = 3
 }
 
 table SystemState {
