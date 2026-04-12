@@ -47,6 +47,37 @@ table SafetyState {
   has_controller:      bool;
 }
 
+// ---------- System state ----------
+
+enum DriveStatus : byte {
+  Offline = 0,
+  Fault = 1,
+  QuickStop = 2,
+  Settling = 3,
+  Operational = 4
+}
+
+enum ActivityType : byte {
+  Idle = 0,
+  GravityCalibration = 1,
+  FrictionCalibration = 2
+}
+
+enum MotionStatus : byte {
+  Idle = 0,
+  Moving = 1,
+  Braking = 2
+}
+
+table SystemState {
+  drive_status:    DriveStatus;
+  activity:        ActivityType;
+  activity_step:   uint16;
+  activity_total:  uint16;
+  motion:          MotionStatus;
+  is_impedance:    bool;
+}
+
 // ---------- Robot configuration variants ----------
 
 table SingleTelemetry {
@@ -66,6 +97,7 @@ table TelemetryData {
   seq:    uint64;
   safety: SafetyState (required);
   robot:  RobotTelemetryType (required);
+  system: SystemState;
 }
 
 root_type TelemetryData;
