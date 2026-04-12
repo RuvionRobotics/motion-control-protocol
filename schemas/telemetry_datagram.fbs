@@ -52,9 +52,10 @@ table SafetyState {
 enum DriveStatus : byte {
   Off = 0,
   SettingUp = 1,
-  Fault = 2,
-  QuickStop = 3,
-  Operational = 4
+  BusFault = 2,
+  DriveFault = 3,
+  QuickStop = 4,
+  Operational = 5
 }
 
 enum ActivityType : byte {
