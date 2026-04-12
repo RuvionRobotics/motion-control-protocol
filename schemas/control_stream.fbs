@@ -19,10 +19,6 @@ table Calibration {
   calibration_type: CalibrationType = Gravity;
 }
 
-table StartTrajectory {
-  id: uint64;
-}
-
 table ClearFault {
 }
 
@@ -80,7 +76,6 @@ union CommandType {
   Calibration,
   SingleZeroing,
   HumanoidZeroing,
-  StartTrajectory,
   ClearFault,
   ClaimControl,
   ReleaseControl,
