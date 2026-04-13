@@ -31,6 +31,7 @@ table JointTwistCommand {
 
 table JointPoseCommand {
   position:  [float] (required);  // 7: q1..q7
+  velocity:  [float];             // 7: dq1..dq7 - optional target velocity, omit for zero (stop at target)
   impedance: Impedance;
 }
 
