@@ -23,12 +23,6 @@ union Impedance { TcpImpedance, JointImpedance }
 
 // ---------- Commands ----------
 
-table TcpTwistCommand {
-  twist:     [float] (required);  // 6: vx,vy,vz,wx,wy,wz
-  ttl_ms:    uint32;              // time-to-live in milliseconds
-  impedance: Impedance;
-}
-
 table JointTwistCommand {
   twist:     [float] (required);  // 7: dq1..dq7
   ttl_ms:    uint32;              // time-to-live in milliseconds
@@ -48,7 +42,6 @@ table BufferPoint {
 }
 
 union CommandType {
-  TcpTwistCommand,
   JointTwistCommand,
   JointPoseCommand,
   BufferPoint
