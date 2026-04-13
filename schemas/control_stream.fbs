@@ -88,6 +88,13 @@ table HumanoidStartTrajectory {
   max_gap:              uint8 = 5;
 }
 
+// Configure rate-limiter parameters for JointPose+velocity streaming control.
+// Resets to defaults on disconnect. Omit to use defaults (kp=10.0, t_la=0.0).
+table SetStreamingParams {
+  kp:   float = 10.0;  // proportional gain [rev/s per rev]
+  t_la: float = 0.0;   // lookahead time [s] — set to one-way network latency for WAN
+}
+
 union CommandType {
   Quickstop,
   Calibration,
@@ -104,7 +111,8 @@ union CommandType {
   ApplyUpdate,
   Reboot,
   SingleStartTrajectory,
-  HumanoidStartTrajectory
+  HumanoidStartTrajectory,
+  SetStreamingParams
 }
 
 table StreamCommand {
