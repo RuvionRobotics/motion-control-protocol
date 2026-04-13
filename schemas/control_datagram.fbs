@@ -25,14 +25,12 @@ union Impedance { TcpImpedance, JointImpedance }
 
 table JointTwistCommand {
   twist:     [float] (required);  // 7: dq1..dq7
-  ttl_ms:    uint32;              // time-to-live in milliseconds
   impedance: Impedance;
 }
 
 table JointPoseCommand {
   position:  [float] (required);  // 7: q1..q7
   velocity:  [float];             // 7: dq1..dq7 - optional target velocity, omit for zero (stop at target)
-  ttl_ms:    uint32;              // time-to-live in ms - required when velocity is set, ignored otherwise
   impedance: Impedance;
 }
 
@@ -75,7 +73,8 @@ union RobotCommandType {
 // ---------- Envelope ----------
 
 table MotionCommand {
-  seq:  uint64;
+  seq:     uint64;
+  ttl_ms:  uint32;              // time-to-live in ms - when expired, arm brakes at current position
   robot_command: RobotCommandType (required);
 }
 
