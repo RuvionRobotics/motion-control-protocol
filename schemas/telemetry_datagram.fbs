@@ -35,6 +35,15 @@ table ArmTelemetry {
 
 // ---------- Safety / supervisory state ----------
 
+// ---------- Trajectory state ----------
+
+table TrajectoryState {
+  buffer_fill: uint8;    // current number of points in buffer (0..N)
+  active_seq:  uint32;   // traj_seq of the point currently being played back
+}
+
+// ---------- Safety / supervisory state ----------
+
 table SafetyState {
   any_fault:           bool;
   all_op_enabled:      bool;
@@ -45,6 +54,8 @@ table SafetyState {
   active_seq:          uint64;
   // Control ownership: true if a client currently holds the control token
   has_controller:      bool;
+  // Trajectory: only populated when a trajectory is active
+  trajectory:          TrajectoryState;
 }
 
 // ---------- System state ----------

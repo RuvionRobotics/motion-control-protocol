@@ -35,9 +35,10 @@ table JointPoseCommand {
 }
 
 table BufferPoint {
-  position:     [float] (required);  // 7: q1..q7
-  velocity:     [float] (required);  // 7: dq1..dq7
-  acceleration: [float] (required);  // 7: ddq1..ddq7
+  traj_seq:     uint32;                // trajectory-local sequence (starts at 0)
+  position:     [float] (required);    // 7: q1..q7
+  velocity:     [float] (required);    // 7: dq1..dq7
+  acceleration: [float];               // 7: ddq1..ddq7 - optional, enables quintic interpolation
   impedance:    Impedance;
 }
 

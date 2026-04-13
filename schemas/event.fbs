@@ -59,6 +59,22 @@ table ControllerEvent {
   has_controller: bool;
 }
 
+// ---------- Trajectory events ----------
+
+enum TrajectoryEndReason : byte {
+  Completed = 0,     // buffer empty, no more points - client decides if this was expected
+  Stopped = 1,       // Stop command received
+  GapExceeded = 2,   // more than max_gap consecutive points were missing
+  Fault = 3          // drive fault or quickstop
+}
+
+table TrajectoryStartedEvent {}
+
+table TrajectoryEndedEvent {
+  reason:   TrajectoryEndReason;
+  last_seq: uint32;               // last executed traj_seq
+}
+
 // ---------- Event union ----------
 
 union EventType {
@@ -66,7 +82,9 @@ union EventType {
   MotionStatusEvent,
   ActivityEvent,
   DriveModeEvent,
-  ControllerEvent
+  ControllerEvent,
+  TrajectoryStartedEvent,
+  TrajectoryEndedEvent
 }
 
 table Event {

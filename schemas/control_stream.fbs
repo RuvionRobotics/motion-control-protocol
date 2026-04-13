@@ -71,6 +71,23 @@ table ApplyUpdate {
 table Reboot {
 }
 
+table SingleStartTrajectory {
+  start_position:  [float] (required);  // 7: q1..q7
+  min_buffer_fill: uint8;               // playback starts after this many points (1..50)
+  dt_ms:           uint8;               // fixed time step between points in ms (e.g. 4 = 250 Hz)
+  is_impedance:    bool;                // impedance mode for entire trajectory; switch happens during blend
+  max_gap:         uint8 = 5;           // max consecutive missing points before abort
+}
+
+table HumanoidStartTrajectory {
+  right_start_position: [float] (required);  // 7: q1..q7
+  left_start_position:  [float] (required);  // 7: q1..q7
+  min_buffer_fill:      uint8;
+  dt_ms:                uint8;
+  is_impedance:         bool;
+  max_gap:              uint8 = 5;
+}
+
 union CommandType {
   Quickstop,
   Calibration,
@@ -85,7 +102,9 @@ union CommandType {
   SetDriveMode,
   CheckUpdate,
   ApplyUpdate,
-  Reboot
+  Reboot,
+  SingleStartTrajectory,
+  HumanoidStartTrajectory
 }
 
 table StreamCommand {
