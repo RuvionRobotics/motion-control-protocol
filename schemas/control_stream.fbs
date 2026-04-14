@@ -91,7 +91,8 @@ table HumanoidStartTrajectory {
 // Configure rate-limiter parameters for JointPose+velocity streaming control.
 // Resets to defaults on disconnect. Omit to use defaults (kp=10.0, t_la=0.0).
 table SetStreamingParams {
-  kp:   float = 10.0;  // proportional gain [rev/s per rev]
+  kp:   [float];  // proportional gain per joint [rev/s per rev] — length 7, omit for model defaults
+  kd:   [float];  // derivative gain per joint [dimensionless] — length 7, omit for model defaults
   t_la: float = 0.0;   // lookahead time [s] — set to one-way network latency for WAN
 }
 
