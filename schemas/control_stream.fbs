@@ -15,7 +15,6 @@ enum CalibrationType : byte {
 }
 
 table Calibration {
-  seq: uint64;
   calibration_type: CalibrationType = Gravity;
 }
 
@@ -117,8 +116,35 @@ union CommandType {
 }
 
 table StreamCommand {
-  seq: uint64;
   command: CommandType (required);
+}
+
+// ───── Response ─────
+
+enum CommandResult : byte {
+  // Success (0–9)
+  Ok = 0,
+
+  // Failures (10+)
+  InternalError = 10,
+  NotImplemented = 11,
+  DecodeFailed = 12,
+  AlreadyControlled = 13,
+  NotController = 14,
+  FaultActive = 15,
+  QuickstopNotActive = 16,
+  ModeMismatch = 17,
+  ZeroingFailed = 18,
+  ActivityNotIdle = 19,
+  NotInCspMode = 20,
+  NotAtZero = 21,
+  GravityCalibrationRequired = 22,
+  NotIdleOrAtRest = 23
+}
+
+table StreamCommandResponse {
+  result: CommandResult;
+  message: string;             // optional human-readable detail (debugging only)
 }
 
 root_type StreamCommand;
