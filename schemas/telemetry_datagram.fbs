@@ -49,9 +49,8 @@ table SafetyState {
   all_op_enabled:      bool;
   quickstop_requested: bool;
   quickstop_active:    bool;
-  // Sequence tracking: last command received from client, and which seq is currently being executed
+  // Sequence tracking: last command received from client
   last_received_seq:   uint64;
-  active_seq:          uint64;
   // Control ownership: true if a client currently holds the control token
   has_controller:      bool;
   // Trajectory: only populated when a trajectory is active
