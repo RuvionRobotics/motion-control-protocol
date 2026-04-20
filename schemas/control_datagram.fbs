@@ -1,0 +1,64 @@
+// High-frequency motion commands for a Ruvion arm (7 DoF, j1..j7).
+// Sent as unreliable QUIC datagrams; if no fresh command arrives within
+// `ttl_ms` the arm brakes. Robot configurations: Single or Humanoid
+// (right/left are from the robot's PoV).
+//
+// Units: joint position rev, velocity rev/s, joint stiffness Nm/rad,
+// joint damping Nm·s/rad. TCP stiffness N/m (xyz) + Nm/rad (rxryrz);
+// TCP damping N·s/m + Nm·s/rad. TCP axes in the robot base frame.
+
+namespace ruvion.motion;
+
+file_identifier "MOCM";
+
+// ---------- Impedance ----------
+// Optional override per command. Requires DriveMode = Impedance.
+
+table TcpImpedance {
+  stiffness: [float] (required);  // 6: x,y,z,rx,ry,rz
+  damping:   [float] (required);  // 6: x,y,z,rx,ry,rz
+}
+
+table JointImpedance {
+  stiffness: [float] (required);  // 7: j1..j7
+  damping:   [float] (required);  // 7: j1..j7
+}
+
+union Impedance { TcpImpedance, JointImpedance }
+
+// ---------- Commands ----------
+
+table JointTwistCommand {
+  twist:     [float] (required);  // 7: dq1..dq7
+  impedance: Impedance;
+}
+
+table JointPoseCommand {
+  position:  [float] (required);  // 7: q1..q7
+  velocity:  [float];             // 7: dq1..dq7 — omit for stop at target
+  impedance: Impedance;
+}
+
+union CommandType { JointTwistCommand, JointPoseCommand }
+
+table ArmCommand {
+  command: CommandType (required);
+}
+
+// ---------- Robot ----------
+
+table SingleCommand   { arm:   ArmCommand (required); }
+table HumanoidCommand { right: ArmCommand (required); left: ArmCommand (required); }
+
+union RobotCommandType { SingleCommand, HumanoidCommand }
+
+// ---------- Envelope ----------
+
+table MotionCommand {
+  protocol_version: uint16 = 1;  // 0 = pre-versioned
+  seq:              uint64;      // echoed in SafetyState.last_received_seq
+  ttl_ms:           uint32;      // brake if no successor within this
+  robot_command:    RobotCommandType (required);
+}
+
+root_type MotionCommand;

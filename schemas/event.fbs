@@ -1,0 +1,44 @@
+// Discrete state-change events from a Ruvion motion controller.
+// Each event is delivered on its own reliable unidirectional QUIC
+// stream — events are never lost or reordered. Enums mirror those in
+// telemetry_datagram.fbs / control_stream.fbs so that event consumers
+// only depend on this schema.
+
+namespace ruvion.motion;
+
+file_identifier "MOEV";
+
+enum EventDriveStatus : byte {
+  Off = 0, SettingUp = 1, BusFault = 2, DriveFault = 3, QuickStop = 4, Operational = 5
+}
+
+enum EventMotionStatus : byte {
+  Idle = 0, Settling = 1, Moving = 2, Braking = 3
+}
+
+enum EventActivityType : byte {
+  Idle = 0, GravityCalibration = 1, FrictionCalibration = 2
+}
+
+enum EventDriveMode : byte { Csp = 0, Impedance = 1 }
+
+table DriveStatusEvent  { status: EventDriveStatus; }
+table MotionStatusEvent { status: EventMotionStatus; }
+table ActivityEvent     { activity: EventActivityType; step: uint16; total: uint16; }
+table DriveModeEvent    { mode: EventDriveMode; }
+table ControllerEvent   { has_controller: bool; }
+
+union EventType {
+  DriveStatusEvent,
+  MotionStatusEvent,
+  ActivityEvent,
+  DriveModeEvent,
+  ControllerEvent
+}
+
+table Event {
+  protocol_version: uint16 = 1;
+  event: EventType (required);
+}
+
+root_type Event;

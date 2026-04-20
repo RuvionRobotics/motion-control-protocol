@@ -1,0 +1,97 @@
+// High-frequency state feedback from a Ruvion arm (7 DoF, j1..j7).
+// Sent as unreliable QUIC datagrams ("latest wins"); discrete state
+// transitions are re-emitted reliably via event.fbs.
+//
+// Units: joint position rev, velocity rev/s, joint torque Nm
+// (post-gearbox). Temperatures °C, NaN = unavailable. TCP position mm,
+// orientation unit quaternion (w,x,y,z), linear vel mm/s, angular vel
+// rad/s, all in the robot base frame.
+
+namespace ruvion.motion;
+
+file_identifier "MOTE";
+
+// ---------- Per-arm telemetry ----------
+
+table ArmTelemetry {
+  target_position:    [float];   // 7: q1..q7
+  target_velocity:    [float];   // 7: dq1..dq7
+  target_torque:      [float];   // 7
+  actual_position:    [float];   // 7
+  actual_velocity:    [float];   // 7
+  actual_torque:      [float];   // 7
+  motor_temperature:  [float];   // 7: winding temperature
+  driver_temperature: [float];   // 7: drive/inverter temperature
+  fault_codes:        [uint16];  // 7: CiA402 error code per joint (OD 0x603F), 0 = none
+  faulted:            [bool];    // 7
+  quick_stop_active:  [bool];    // 7: joint latched in CiA402 Quick Stop
+
+  // TCP pose + velocity (omitted when kinematics unavailable).
+  tcp_actual_position:       [float];  // 3: x,y,z
+  tcp_actual_orientation:    [float];  // 4: w,x,y,z
+  tcp_actual_linear_vel:     [float];  // 3
+  tcp_actual_angular_vel:    [float];  // 3
+  tcp_commanded_position:    [float];  // 3
+  tcp_commanded_orientation: [float];  // 4
+  tcp_commanded_linear_vel:  [float];  // 3
+  tcp_commanded_angular_vel: [float];  // 3
+}
+
+// ---------- Safety / system ----------
+
+table SafetyState {
+  any_fault:           bool;
+  all_op_enabled:      bool;    // all drives in CiA402 "Operation enabled"
+  quickstop_requested: bool;
+  quickstop_active:    bool;
+  last_received_seq:   uint64;  // echo of MotionCommand.seq
+  has_controller:      bool;    // a client holds the control token
+}
+
+enum DriveStatus : byte {
+  Off         = 0,
+  SettingUp   = 1,
+  BusFault    = 2,
+  DriveFault  = 3,
+  QuickStop   = 4,
+  Operational = 5
+}
+
+enum ActivityType : byte {
+  Idle                = 0,
+  GravityCalibration  = 1,
+  FrictionCalibration = 2
+}
+
+enum MotionStatus : byte {
+  Idle     = 0,
+  Settling = 1,
+  Moving   = 2,
+  Braking  = 3
+}
+
+table SystemState {
+  drive_status:   DriveStatus;
+  activity:       ActivityType;
+  activity_step:  uint16;     // progress within current activity
+  activity_total: uint16;     // total steps (step/total = fraction)
+  motion:         MotionStatus;
+  is_impedance:   bool;       // true = Impedance, false = CSP
+}
+
+// ---------- Robot variants + envelope ----------
+
+table SingleTelemetry   { arm:   ArmTelemetry (required); }
+table HumanoidTelemetry { right: ArmTelemetry (required); left: ArmTelemetry (required); }
+
+union RobotTelemetryType { SingleTelemetry, HumanoidTelemetry }
+
+table TelemetryData {
+  protocol_version: uint16 = 1;
+  seq:              uint64;
+  safety:           SafetyState (required);
+  robot:            RobotTelemetryType (required);
+  system:           SystemState;
+}
+
+root_type TelemetryData;
