@@ -1,65 +1,32 @@
-// event.fbs
-// Discrete state-change events sent from controller to client.
-// Each event is sent as a separate reliable uni-directional QUIC stream.
+// Discrete state-change events from a Ruvion motion controller.
+// Each event is delivered on its own reliable unidirectional QUIC
+// stream — events are never lost or reordered. Enums mirror those in
+// telemetry_datagram.fbs / control_stream.fbs so that event consumers
+// only depend on this schema.
 
 namespace ruvion.motion;
 
 file_identifier "MOEV";
 
-// ---------- Enums (mirrored from telemetry/stream schemas) ----------
-
 enum EventDriveStatus : byte {
-  Off = 0,
-  SettingUp = 1,
-  BusFault = 2,
-  DriveFault = 3,
-  QuickStop = 4,
-  Operational = 5
+  Off = 0, SettingUp = 1, BusFault = 2, DriveFault = 3, QuickStop = 4, Operational = 5
 }
 
 enum EventMotionStatus : byte {
-  Idle = 0,
-  Settling = 1,
-  Moving = 2,
-  Braking = 3
+  Idle = 0, Settling = 1, Moving = 2, Braking = 3
 }
 
 enum EventActivityType : byte {
-  Idle = 0,
-  GravityCalibration = 1,
-  FrictionCalibration = 2
+  Idle = 0, GravityCalibration = 1, FrictionCalibration = 2
 }
 
-enum EventDriveMode : byte {
-  Csp = 0,
-  Impedance = 1
-}
+enum EventDriveMode : byte { Csp = 0, Impedance = 1 }
 
-// ---------- Event tables ----------
-
-table DriveStatusEvent {
-  status: EventDriveStatus;
-}
-
-table MotionStatusEvent {
-  status: EventMotionStatus;
-}
-
-table ActivityEvent {
-  activity: EventActivityType;
-  step: uint16;
-  total: uint16;
-}
-
-table DriveModeEvent {
-  mode: EventDriveMode;
-}
-
-table ControllerEvent {
-  has_controller: bool;
-}
-
-// ---------- Event union ----------
+table DriveStatusEvent  { status: EventDriveStatus; }
+table MotionStatusEvent { status: EventMotionStatus; }
+table ActivityEvent     { activity: EventActivityType; step: uint16; total: uint16; }
+table DriveModeEvent    { mode: EventDriveMode; }
+table ControllerEvent   { has_controller: bool; }
 
 union EventType {
   DriveStatusEvent,
@@ -70,7 +37,7 @@ union EventType {
 }
 
 table Event {
-  protocol_version: uint16 = 1; // bump on breaking schema changes; 0 = pre-versioned
+  protocol_version: uint16 = 1;
   event: EventType (required);
 }
 

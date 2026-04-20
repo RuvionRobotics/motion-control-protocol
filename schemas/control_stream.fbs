@@ -1,82 +1,79 @@
+// Reliable request/response control plane for a Ruvion arm (7 DoF).
+// Each StreamCommand is sent on its own QUIC stream; the controller
+// replies with one StreamCommandResponse. Commands scoped to an arm
+// come in Single… / Humanoid… variants (right/left from robot's PoV).
+// Joint indices are 0-based (0..6 ⇒ j1..j7).
+
 namespace ruvion.motion;
 
-enum QuickstopState : byte {
-  Engage = 0,
-  Disengage = 1
-}
+// ---------- Safety / faults ----------
 
-table Quickstop {
-  state: QuickstopState;
-}
+enum QuickstopState : byte { Engage = 0, Disengage = 1 }
 
-enum CalibrationType : byte {
-  Gravity = 0,
-  Friction = 1
-}
+table Quickstop   { state: QuickstopState; }
+table ClearFault  {}
 
-table Calibration {
-  calibration_type: CalibrationType = Gravity;
-}
+// ---------- Calibration ----------
 
-table ClearFault {
-}
+enum CalibrationType : byte { Gravity = 0, Friction = 1 }
 
-table ClaimControl {
-  force: bool = false;
-}
+table Calibration { calibration_type: CalibrationType = Gravity; }
 
-table ReleaseControl {
-}
+// ---------- Control ownership ----------
 
-table SingleZeroing {
-  joints: [uint8] (required);
-}
+// Acquire the control token (only the holder may send MotionCommands).
+// `force = true` takes the token from another client.
+table ClaimControl   { force: bool = false; }
+table ReleaseControl {}
 
-table HumanoidZeroing {
-  right_joints: [uint8];
-  left_joints: [uint8];
-}
+// ---------- Zeroing ----------
+// Joint indices (0..6) whose current physical position becomes the new zero.
 
-table Stop {
-}
+table SingleZeroing   { joints: [uint8] (required); }
+table HumanoidZeroing { right_joints: [uint8]; left_joints: [uint8]; }
 
+// ---------- Motion control ----------
+
+table Stop {}
+
+// Dimensionless scaling factors (1.0 = nominal) for trajectory moves.
+// Does not affect streaming commands.
 table SingleSetSpeedOverride {
-  velocity_factor: float = 1.0;
+  velocity_factor:     float = 1.0;
   acceleration_factor: float = 1.0;
 }
-
 table HumanoidSetSpeedOverride {
-  right_velocity_factor: float = 1.0;
+  right_velocity_factor:     float = 1.0;
   right_acceleration_factor: float = 1.0;
-  left_velocity_factor: float = 1.0;
-  left_acceleration_factor: float = 1.0;
+  left_velocity_factor:      float = 1.0;
+  left_acceleration_factor:  float = 1.0;
 }
 
-enum DriveMode : byte {
-  Csp = 0,
-  Impedance = 1
-}
+// ---------- Drive mode ----------
+// Csp       = Cyclic Synchronous Position (stiff)
+// Impedance = compliant, uses stiffness/damping from control_datagram.fbs
 
-table SetDriveMode {
-  mode: DriveMode = Csp;
-}
+enum DriveMode : byte { Csp = 0, Impedance = 1 }
 
-table CheckUpdate {
-}
+table SetDriveMode { mode: DriveMode = Csp; }
 
-table ApplyUpdate {
-}
+// ---------- System ----------
 
-table Reboot {
-}
+table CheckUpdate {}
+table ApplyUpdate {}
+table Reboot      {}
 
-// Configure rate-limiter parameters for JointPose+velocity streaming control.
-// Resets to defaults on disconnect. Omit to use defaults (kp=10.0, t_la=0.0).
+// ---------- Streaming parameters ----------
+// Rate-limiter for JointPoseCommand streaming. Resets to model defaults
+// on disconnect. Omit an array to keep the model default.
+
 table SetStreamingParams {
-  kp:   [float];  // proportional gain per joint [rev/s per rev] — length 7, omit for model defaults
-  kd:   [float];  // derivative gain per joint [dimensionless] — length 7, omit for model defaults
-  t_la: float = 0.0;   // lookahead time [s] — set to one-way network latency for WAN
+  kp:   [float];       // 7: gain per joint [rev/s per rev of error]
+  kd:   [float];       // 7: gain per joint [dimensionless]
+  t_la: float = 0.0;   // lookahead time [s]; use one-way latency on WAN
 }
+
+// ---------- Envelope ----------
 
 union CommandType {
   Quickstop,
@@ -97,37 +94,35 @@ union CommandType {
 }
 
 table StreamCommand {
-  protocol_version: uint16 = 1; // bump on breaking schema changes; 0 = pre-versioned
+  protocol_version: uint16 = 1;
   command: CommandType (required);
 }
 
-// ───── Response ─────
+// ---------- Response ----------
+// Success 0–9, failure 10+. Append-only: never renumber or reuse.
 
 enum CommandResult : byte {
-  // Success (0–9)
-  Ok = 0,
+  Ok                         = 0,
 
-  // Failures (10+)
-  InternalError = 10,
-  NotImplemented = 11,
-  DecodeFailed = 12,
-  AlreadyControlled = 13,
-  NotController = 14,
-  FaultActive = 15,
-  QuickstopNotActive = 16,
-  ModeMismatch = 17,
-  ZeroingFailed = 18,
-  ActivityNotIdle = 19,
-  NotInCspMode = 20,
-  NotAtZero = 21,
+  InternalError              = 10,
+  NotImplemented             = 11,
+  DecodeFailed               = 12,
+  AlreadyControlled          = 13,  // another client holds the token
+  NotController              = 14,  // caller does not hold the token
+  FaultActive                = 15,
+  QuickstopNotActive         = 16,  // Disengage with no active Quick Stop
+  ModeMismatch               = 17,  // command invalid in current DriveMode
+  ZeroingFailed              = 18,
+  ActivityNotIdle            = 19,  // a background activity is running
+  NotInCspMode               = 20,
+  NotAtZero                  = 21,
   GravityCalibrationRequired = 22,
-  NotIdleOrAtRest = 23
+  NotIdleOrAtRest            = 23
 }
 
 table StreamCommandResponse {
-  result: CommandResult;
-  message: string;             // optional human-readable detail (debugging only)
+  result:  CommandResult;
+  message: string;   // optional debug detail; clients branch on `result`
 }
 
 root_type StreamCommand;
-

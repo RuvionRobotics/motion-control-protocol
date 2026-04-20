@@ -1,13 +1,18 @@
-// control_datagram.fbs
-// Conventions:
-// - Joint space: 7 values, index 0..6 => j1..j7
-// - TCP space:   6 values, index 0..5 => x,y,z,rx,ry,rz
+// High-frequency motion commands for a Ruvion arm (7 DoF, j1..j7).
+// Sent as unreliable QUIC datagrams; if no fresh command arrives within
+// `ttl_ms` the arm brakes. Robot configurations: Single or Humanoid
+// (right/left are from the robot's PoV).
+//
+// Units: joint position rev, velocity rev/s, joint stiffness Nm/rad,
+// joint damping Nm·s/rad. TCP stiffness N/m (xyz) + Nm/rad (rxryrz);
+// TCP damping N·s/m + Nm·s/rad. TCP axes in the robot base frame.
 
 namespace ruvion.motion;
 
 file_identifier "MOCM";
 
 // ---------- Impedance ----------
+// Optional override per command. Requires DriveMode = Impedance.
 
 table TcpImpedance {
   stiffness: [float] (required);  // 6: x,y,z,rx,ry,rz
@@ -21,7 +26,7 @@ table JointImpedance {
 
 union Impedance { TcpImpedance, JointImpedance }
 
-// ---------- Commands (Position + Impedance) ----------
+// ---------- Commands ----------
 
 table JointTwistCommand {
   twist:     [float] (required);  // 7: dq1..dq7
@@ -30,16 +35,11 @@ table JointTwistCommand {
 
 table JointPoseCommand {
   position:  [float] (required);  // 7: q1..q7
-  velocity:  [float];             // 7: dq1..dq7 - optional target velocity, omit for zero (stop at target)
+  velocity:  [float];             // 7: dq1..dq7 — omit for stop at target
   impedance: Impedance;
 }
 
-union CommandType {
-  JointTwistCommand,
-  JointPoseCommand
-}
-
-// ---------- Arm ----------
+union CommandType { JointTwistCommand, JointPoseCommand }
 
 table ArmCommand {
   command: CommandType (required);
@@ -47,27 +47,18 @@ table ArmCommand {
 
 // ---------- Robot ----------
 
-table SingleCommand {
-  arm: ArmCommand (required);
-}
+table SingleCommand   { arm:   ArmCommand (required); }
+table HumanoidCommand { right: ArmCommand (required); left: ArmCommand (required); }
 
-table HumanoidCommand {
-  right: ArmCommand (required);
-  left: ArmCommand (required);
-}
-
-union RobotCommandType {
-  SingleCommand,
-  HumanoidCommand
-}
+union RobotCommandType { SingleCommand, HumanoidCommand }
 
 // ---------- Envelope ----------
 
 table MotionCommand {
-  protocol_version: uint16 = 1; // bump on breaking schema changes; 0 = pre-versioned
-  seq:     uint64;
-  ttl_ms:  uint32;              // time-to-live in ms - when expired, arm brakes from current position
-  robot_command: RobotCommandType (required);
+  protocol_version: uint16 = 1;  // 0 = pre-versioned
+  seq:              uint64;      // echoed in SafetyState.last_received_seq
+  ttl_ms:           uint32;      // brake if no successor within this
+  robot_command:    RobotCommandType (required);
 }
 
 root_type MotionCommand;
